@@ -382,14 +382,75 @@ const crtLoveTl = () => {
 
 };
 
-const loveTl = crtLoveTl().play();
-setInterval(() => {
-  loveTl.replay();
-}, 4300);
-
+const loveTl = crtLoveTl();
 const volume = 0.2;
-el.blup.volume = volume;
-el.blop.volume = volume;
+
+// Custom shape for Sakura petal
+class Sakura extends mojs.CustomShape {
+    getShape () {
+        return '<path d="M16.3,3.6c0,0,2.1-2.2,5.1-2.2s5.1,2.2,5.1,2.2s-1.2,2.9-2.8,4.8c-1.6,1.9-3.7,2.9-3.7,2.9s-1.9-1.1-3.4-2.9C17.5,6.5,16.3,3.6,16.3,3.6z"/>';
+    }
+}
+mojs.addShape('sakura', Sakura);
+
+const createFallingSnow = () => {
+    const snow = new mojs.Shape({
+        shape: 'circle',
+        fill: 'white',
+        radius: 'rand(1, 4)',
+        left: 'rand(0, 100)%',
+        top: '-20%',
+        opacity: 'rand(0.5, 1)',
+        y: { '-20%': '120%' },
+        x: { 0: 'rand(-20, 20)%' },
+        duration: 'rand(3000, 5000)',
+        onComplete: function() {
+            this.generate();
+        }
+    }).play();
+};
+
+const createFallingSakura = () => {
+    const sakura = new mojs.Shape({
+        shape: 'sakura',
+        fill: ['#ffc0cb', '#ffb6c1', '#ffb3ba'],
+        radius: 'rand(5, 10)',
+        left: 'rand(0, 100)%',
+        top: '-20%',
+        opacity: 'rand(0.7, 1)',
+        angle: { 0: 'rand(0, 360)' },
+        y: { '-20%': '120%' },
+        x: { 0: 'rand(-50, 50)%' },
+        duration: 'rand(4000, 7000)',
+        onComplete: function() {
+            this.generate();
+        }
+    }).play();
+};
+
+const start = () => {
+  const startOverlay = qs('#start-overlay');
+  const container = qs('.container');
+
+  startOverlay.style.display = 'none';
+  container.style.visibility = 'visible';
+
+  el.blup.volume = volume;
+  el.blop.volume = volume;
+  el.sound.textContent = "🔊";
+  el.sound.classList.remove("sound--off");
+
+  loveTl.play();
+  setInterval(() => {
+    loveTl.replay();
+  }, 4300);
+
+  // Start snow and sakura
+  for (let i = 0; i < 20; i++) {
+      setTimeout(createFallingSnow, Math.random() * 5000);
+      setTimeout(createFallingSakura, Math.random() * 7000);
+  }
+};
 
 const toggleSound = () => {
   let on = true;
@@ -397,15 +458,21 @@ const toggleSound = () => {
     if (on) {
       el.blup.volume = 0.0;
       el.blop.volume = 0.0;
-      el.sound.textContent = "Sound: Off";
+      el.sound.textContent = "🔇";
       el.sound.classList.add("sound--off");
     } else {
       el.blup.volume = volume;
       el.blop.volume = volume;
-      el.sound.textContent = "Sound: On";
+      el.sound.textContent = "🔊";
       el.sound.classList.remove("sound--off");
     }
     on = !on;
   };
 };
+
+// Mute sound initially
+el.blup.volume = 0.0;
+el.blop.volume = 0.0;
+
+qs('#start-overlay').addEventListener('click', start);
 el.sound.addEventListener("click", toggleSound());
